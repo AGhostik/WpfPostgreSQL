@@ -13,16 +13,29 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace WpfPostgreSQL
+namespace WpfPostgreSQL.UI
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+
+            _mainVM = new MainViewModel();
+
+            DataContext = _mainVM;
+        }
+
+        private readonly MainViewModel _mainVM;
+
+        private void SendButton_Click(object sender, RoutedEventArgs e)
+        {
+            _mainVM.SendSomeData();
+        }
+
+        private void GetButton_Click(object sender, RoutedEventArgs e)
+        {
+            _mainVM.GetSomeData();
         }
     }
 }
