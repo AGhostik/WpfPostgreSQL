@@ -1,0 +1,115 @@
+﻿<Page
+    x:Class="WpfPostgreSQL.UI.LogInPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:WpfPostgreSQL.UI"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:WpfPostgreSQL.UI"
+    Title="LogInPage"
+    d:DataContext="{d:DesignInstance d:Type=vm:LogInViewModel}"
+    d:DesignHeight="300"
+    d:DesignWidth="300"
+    ShowsNavigationUI="False"
+    WindowHeight="300"
+    WindowWidth="500"
+    mc:Ignorable="d">
+
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock
+            Grid.Row="0"
+            Grid.Column="0"
+            Margin="5"
+            VerticalAlignment="Stretch"
+            Text="Server: "
+            TextAlignment="Right" />
+        <TextBox
+            Grid.Row="0"
+            Grid.Column="1"
+            MinWidth="160"
+            Margin="5"
+            VerticalAlignment="Stretch"
+            Text="{Binding Path=Server}" />
+
+        <TextBlock
+            Grid.Row="1"
+            Grid.Column="0"
+            Margin="5"
+            VerticalAlignment="Stretch"
+            Text="Port: "
+            TextAlignment="Right" />
+        <TextBox
+            Grid.Row="1"
+            Grid.Column="1"
+            MinWidth="160"
+            Margin="5"
+            VerticalAlignment="Stretch"
+            Text="{Binding Path=Port}" />
+
+        <TextBlock
+            Grid.Row="2"
+            Grid.Column="0"
+            Margin="5"
+            VerticalAlignment="Stretch"
+            Text="Database: "
+            TextAlignment="Right" />
+        <TextBox
+            Grid.Row="2"
+            Grid.Column="1"
+            MinWidth="160"
+            Margin="5"
+            VerticalAlignment="Stretch"
+            Text="{Binding Path=DataBase}" />
+
+        <TextBlock
+            Grid.Row="3"
+            Grid.Column="0"
+            Margin="5"
+            VerticalAlignment="Stretch"
+            Text="UserID: "
+            TextAlignment="Right" />
+        <TextBox
+            Grid.Row="3"
+            Grid.Column="1"
+            MinWidth="160"
+            Margin="5"
+            VerticalAlignment="Stretch"
+            Text="{Binding Path=UserId}" />
+
+        <TextBlock
+            Grid.Row="4"
+            Grid.Column="0"
+            Margin="5"
+            VerticalAlignment="Stretch"
+            Text="Password: "
+            TextAlignment="Right" />
+        <PasswordBox
+            Name="UserPass"
+            Grid.Row="4"
+            Grid.Column="1"
+            MinWidth="160"
+            Margin="5"
+            VerticalAlignment="Stretch"
+            Password="ilovedotnet" />
+
+        <Button
+            Grid.Row="5"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Margin="5"
+            Click="LogIn_Click"
+            Content="Log In" />
+    </Grid>
+</Page>

@@ -12,30 +12,22 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using WpfPostgreSQL.Model;
 
 namespace WpfPostgreSQL.UI
 {
-    public partial class MainWindow : Window
+    /// <summary>
+    /// Interaction logic for MainPage.xaml
+    /// </summary>
+    public partial class MainPage : Page
     {
-        public MainWindow()
+        public MainPage(IPostgreServer postgreServer)
         {
             InitializeComponent();
-
-            _mainVM = new MainViewModel();
-
-            DataContext = _mainVM;
+            _mainViewModel = new MainViewModel(postgreServer);
+            DataContext = _mainViewModel;
         }
 
-        private readonly MainViewModel _mainVM;
-
-        private void SendButton_Click(object sender, RoutedEventArgs e)
-        {
-            _mainVM.SendSomeData();
-        }
-
-        private void GetButton_Click(object sender, RoutedEventArgs e)
-        {
-            _mainVM.GetSomeData();
-        }
+        private readonly MainViewModel _mainViewModel;
     }
 }

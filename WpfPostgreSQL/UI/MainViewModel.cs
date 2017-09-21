@@ -1,36 +1,34 @@
 ﻿using System;
+using System.Windows;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WpfPostgreSQL.Model;
 using GalaSoft.MvvmLight;
-
+using System.Collections.ObjectModel;
 
 namespace WpfPostgreSQL.UI
 {
     public class MainViewModel : ObservableObject
     {
-        public MainViewModel()
+        public MainViewModel(IPostgreServer postgreServer)
         {
-            _mainModel = new MainModel();
+            _mainModel = new MainModel(postgreServer);
+            FillTable();
         }
 
         private readonly MainModel _mainModel;
-        private string _sendData;
-        private string _showData;
 
-        public string ShowData { get => _showData; set => Set(ref _showData, value); }
-        public string SendData { get => _sendData; set => Set(ref _sendData, value); }
+        public ObservableCollection<string> TableRows { get; set; } = new ObservableCollection<string>();
 
-        public void SendSomeData()
-        {            
-            _mainModel.AddToTable(SendData);
-        }
-
-        public void GetSomeData()
+        public void FillTable()
         {
-            ShowData = _mainModel.GetFromTable();
+            var list = _mainModel.GetServerTable();
+            foreach (var item in list)
+            {
+                TableRows.Add(item);
+            }
         }
     }
 }

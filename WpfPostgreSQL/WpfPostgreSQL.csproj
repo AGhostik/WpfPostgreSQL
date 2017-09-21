@@ -75,23 +75,34 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="UI\MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
+    <Page Include="UI\LogInPage.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\MainPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Model\ConnectionSettings.cs" />
     <Compile Include="Model\IConnectionSettings.cs" />
-    <Compile Include="Model\IRepository.cs" />
+    <Compile Include="Model\IPostgreServer.cs" />
+    <Compile Include="Model\LogInModel.cs" />
     <Compile Include="Model\MainModel.cs" />
-    <Compile Include="Model\Repository.cs" />
-    <Compile Include="UI\MainViewModel.cs" />
-    <Compile Include="UI\MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
-      <SubType>Code</SubType>
+    <Compile Include="Model\NpgsqlConnectionCreator.cs" />
+    <Compile Include="Model\PostgreServer.cs" />
+    <Compile Include="UI\AuthorizationException.cs" />
+    <Compile Include="UI\LogInPage.xaml.cs">
+      <DependentUpon>LogInPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\LogInViewModel.cs" />
+    <Compile Include="UI\MainPage.xaml.cs">
+      <DependentUpon>MainPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MainViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
