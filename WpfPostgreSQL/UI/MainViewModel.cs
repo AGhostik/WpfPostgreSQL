@@ -15,15 +15,51 @@ namespace WpfPostgreSQL.UI
         public MainViewModel(IPostgreServer postgreServer)
         {
             _mainModel = new MainModel(postgreServer);
-            FillTable();
+            UpdateTable();
         }
 
         private readonly MainModel _mainModel;
+        private string _sendMessage;        
+        private string _decryptedMessage;
+        private string _selectedTableItem;
+        private CryptEnum _selectedCrypt = CryptEnum.NoCrypt;
 
         public ObservableCollection<string> TableRows { get; set; } = new ObservableCollection<string>();
-
-        public void FillTable()
+        public ObservableCollection<CryptEnum> CryptoList { get; set; } = new ObservableCollection<CryptEnum>()
         {
+            CryptEnum.NoCrypt,
+            CryptEnum.AES_128,
+            CryptEnum.AES_192,
+            CryptEnum.AES_256,
+            CryptEnum.Blowfish
+        };
+        public string SendMessage { get => _sendMessage; set =>Set(ref _sendMessage, value); }
+        public string DecryptedMessage { get => _decryptedMessage; set =>Set(ref _decryptedMessage, value); }
+        public string SelectedTableItem { get => _selectedTableItem; set =>Set(ref _selectedTableItem, value); }
+        public CryptEnum SelectedCrypt { get => _selectedCrypt; set => Set(ref _selectedCrypt, value); }
+
+        public void Send()
+        {
+            if (SendMessage == string.Empty)
+            {
+                throw new Exception("Что оправлять на сервер, насяльника?");
+            }
+
+            //
+
+            _mainModel.AddToServerTable(SendMessage, SelectedCrypt);
+
+            TableRows.Add(SendMessage); // аналогично UpdateTable
+        }
+
+        public void Decrypt()
+        {
+            DecryptedMessage = SelectedTableItem;
+        }
+
+        private void UpdateTable()
+        {
+            TableRows.Clear();
             var list = _mainModel.GetServerTable();
             foreach (var item in list)
             {

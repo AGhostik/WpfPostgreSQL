@@ -32,8 +32,9 @@ namespace WpfPostgreSQL.Model
         /// <param name="tableName"></param>
         /// <param name="columnNames">Set null or empty to skip this argument</param>
         /// <param name="values"></param>
+        /// <param name="crypt"></param>
         /// <returns></returns>
-        int Insert(string tableName, List<string> columnNames, List<string> values);
+        int Insert(string tableName, List<string> columnNames, List<string> values, CryptEnum crypt);
 
         /// <summary>
         /// SELECT FROM

@@ -12,9 +12,9 @@ namespace WpfPostgreSQL.Model
 
         private readonly IPostgreServer _postgreServer;
         
-        public void AddToServerTable(string value)
+        public void AddToServerTable(string value, CryptEnum crypt)
         {
-            _postgreServer.Insert("testTable", null, new List<string>() { value });
+            _postgreServer.Insert("testTable", null, new List<string>() { value }, crypt);
         }
 
         public List<string> GetServerTable()

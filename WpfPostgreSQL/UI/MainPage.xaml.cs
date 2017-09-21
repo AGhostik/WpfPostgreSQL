@@ -29,5 +29,15 @@ namespace WpfPostgreSQL.UI
         }
 
         private readonly MainViewModel _mainViewModel;
+
+        private void SendButton_Click(object sender, RoutedEventArgs e)
+        {
+            _mainViewModel.Send();
+        }
+
+        private void DecryptButton_Click(object sender, RoutedEventArgs e)
+        {
+            _mainViewModel.Decrypt();
+        }
     }
 }

@@ -26,25 +26,40 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Orientation="Vertical">
-                <TextBox Margin="5" VerticalAlignment="Stretch" />
-                <Button Margin="5" Content="Send message" />
+                <TextBox
+                    Margin="5"
+                    VerticalAlignment="Stretch"
+                    Text="{Binding Path=SendMessage, UpdateSourceTrigger=PropertyChanged}" />
+                <Button
+                    Margin="5"
+                    Click="SendButton_Click"
+                    Content="Send message" />
             </StackPanel>
             <ComboBox
                 Grid.Row="1"
                 Margin="5"
-                VerticalAlignment="Stretch" />
+                VerticalAlignment="Stretch"
+                ItemsSource="{Binding Path=CryptoList}"
+                SelectedItem="{Binding Path=SelectedCrypt, UpdateSourceTrigger=PropertyChanged}" />
             <StackPanel
                 Grid.Row="2"
                 VerticalAlignment="Bottom"
                 Orientation="Vertical">
-                <TextBox Margin="5" VerticalAlignment="Stretch" />
-                <Button Margin="5" Content="Decrypt message" />
+                <TextBox
+                    Margin="5"
+                    VerticalAlignment="Stretch"
+                    Text="{Binding Path=DecryptedMessage, UpdateSourceTrigger=PropertyChanged}" />
+                <Button
+                    Margin="5"
+                    Click="DecryptButton_Click"
+                    Content="Decrypt message" />
             </StackPanel>
         </Grid>
 
         <ListBox
             Grid.Column="1"
             Margin="5"
-            ItemsSource="{Binding Path=TableRows}" />
+            ItemsSource="{Binding Path=TableRows}"
+            SelectedItem="{Binding Path=SelectedTableItem}" />
     </Grid>
 </Page>

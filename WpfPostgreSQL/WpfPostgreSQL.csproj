@@ -95,6 +95,7 @@
     <Compile Include="Model\NpgsqlConnectionCreator.cs" />
     <Compile Include="Model\PostgreServer.cs" />
     <Compile Include="UI\AuthorizationException.cs" />
+    <Compile Include="Model\CryptEnum.cs" />
     <Compile Include="UI\LogInPage.xaml.cs">
       <DependentUpon>LogInPage.xaml</DependentUpon>
     </Compile>
