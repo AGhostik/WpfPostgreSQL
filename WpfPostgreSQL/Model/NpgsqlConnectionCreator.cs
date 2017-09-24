@@ -11,11 +11,16 @@ namespace WpfPostgreSQL.Model
 
         public NpgsqlConnection Init(string password)
         {
-            var connection = new NpgsqlConnection($"Server={_settings.Server}; " +
-                $"Port={_settings.Port};" +
-                $" User Id={_settings.UserId};" +
-                $" Password={password};" +
-                $" Database={_settings.Database};");
+            NpgsqlConnectionStringBuilder connectionBuilder = new NpgsqlConnectionStringBuilder
+            {
+                Host = _settings.Server,
+                Port = 5432, //_settings.Port
+                Username = _settings.UserId,
+                Password = password,
+                Database = _settings.Database,
+                SslMode = SslMode.Disable
+            };
+            var connection = new NpgsqlConnection(connectionBuilder.ConnectionString);
             return connection;
         }
 

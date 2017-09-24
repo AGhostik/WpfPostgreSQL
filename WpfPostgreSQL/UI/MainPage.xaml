@@ -15,10 +15,10 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition />
+            <ColumnDefinition Width="250" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Grid>
+        <Grid Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
@@ -60,6 +60,7 @@
             Grid.Column="1"
             Margin="5"
             ItemsSource="{Binding Path=TableRows}"
-            SelectedItem="{Binding Path=SelectedTableItem}" />
+            SelectedItem="{Binding Path=SelectedItem}" 
+            SelectedIndex="{Binding Path=SelectedIndex}"/>
     </Grid>
 </Page>

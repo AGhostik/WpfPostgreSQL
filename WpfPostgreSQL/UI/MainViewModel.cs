@@ -19,10 +19,11 @@ namespace WpfPostgreSQL.UI
         }
 
         private readonly MainModel _mainModel;
+        private int _selectedIndex;
         private string _sendMessage;        
         private string _decryptedMessage;
-        private string _selectedTableItem;
-        private CryptEnum _selectedCrypt = CryptEnum.NoCrypt;
+        private string _selectedItem;
+        private CryptEnum _selectedCrypt = CryptEnum.AES_128; //CryptEnum.NoCrypt;
 
         public ObservableCollection<string> TableRows { get; set; } = new ObservableCollection<string>();
         public ObservableCollection<CryptEnum> CryptoList { get; set; } = new ObservableCollection<CryptEnum>()
@@ -35,8 +36,9 @@ namespace WpfPostgreSQL.UI
         };
         public string SendMessage { get => _sendMessage; set =>Set(ref _sendMessage, value); }
         public string DecryptedMessage { get => _decryptedMessage; set =>Set(ref _decryptedMessage, value); }
-        public string SelectedTableItem { get => _selectedTableItem; set =>Set(ref _selectedTableItem, value); }
+        public string SelectedItem { get => _selectedItem; set =>Set(ref _selectedItem, value); }
         public CryptEnum SelectedCrypt { get => _selectedCrypt; set => Set(ref _selectedCrypt, value); }
+        public int SelectedIndex { get => _selectedIndex; set =>Set(ref _selectedIndex, value); }
 
         public void Send()
         {
@@ -49,12 +51,12 @@ namespace WpfPostgreSQL.UI
 
             _mainModel.AddToServerTable(SendMessage, SelectedCrypt);
 
-            TableRows.Add(SendMessage); // аналогично UpdateTable
+            UpdateTable();
         }
 
         public void Decrypt()
         {
-            DecryptedMessage = SelectedTableItem;
+            DecryptedMessage = _mainModel.DecryptMessage(SelectedIndex);
         }
 
         private void UpdateTable()

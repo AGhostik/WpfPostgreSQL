@@ -46,10 +46,10 @@ namespace WpfPostgreSQL.Model
                 
         public int DropTable(string name)
         {
-            return ExecuteQurey($"drop table {name}");
+            return Execute($"drop table {name}");
         }
 
-        public int ExecuteQurey(string qurey)
+        public int Execute(string qurey)
         {
             _connection.Open();
 
@@ -68,72 +68,42 @@ namespace WpfPostgreSQL.Model
 
             return qureyresult;
         }
-        
-        public int Insert(string tableName, List<string> columnNames, List<string> values, CryptEnum crypt)
+
+        public int Insert(string tableName,
+            List<string> values,
+            List<string> columnNames = null,
+            CryptEnum crypt = CryptEnum.NoCrypt)
         {
             return MainInsert(tableName, columnNames, values, crypt);
         }
-                
-        public List<string> Select(List<string> columnNames, string fromTable)
+        
+        public List<string> Select(string fromTable,
+            List<string> columnNames = null,
+            string where = null,
+            string orderBy = null,
+            bool isDesc = false,
+            CryptEnum decrypt = CryptEnum.NoCrypt)
         {
-            return MainSelect(columnNames, fromTable, null, false);
-        }
-                
-        public List<string> Select(List<string> columnNames, string fromTable, string orderBy, bool isDesc)
-        {
-            return MainSelect(columnNames, fromTable, orderBy, isDesc);
+            return MainSelect(columnNames, fromTable, where, orderBy, isDesc, decrypt);
         }
 
-        private int MainInsert(string tableName, List<string> columnNames, List<string> values, CryptEnum crypt)
+        private int MainInsert(string tableName, 
+            List<string> columnList, 
+            List<string> valueList, 
+            CryptEnum crypt)
         {
             _connection.Open();
 
-            StringBuilder valuesBuilder = new StringBuilder("(");
-            for (int i = 0; i < values.Count; i++)
+            string values = ValueBuilder(valueList, crypt);
+            
+            string columns = string.Empty;
+
+            if (columnList != null && columnList.Count > 0)
             {
-                if (crypt != CryptEnum.NoCrypt)
-                {
-                    valuesBuilder.Append("encrypt(");
-                }
-
-                valuesBuilder.Append("\'");
-                valuesBuilder.Append(values[i]);
-                valuesBuilder.Append("\'");
-
-                if (crypt != CryptEnum.NoCrypt)
-                {
-                    valuesBuilder.Append("\'stupidKey\', \'aes\')");
-                    //pgp_pub_encrypt(data text, key bytea [, options text ])
-                }
-
-                if (i != values.Count - 1)
-                {
-                    valuesBuilder.Append(", ");
-                }
+                columns = ColumnBuilder(columnList);
             }
-            valuesBuilder.Append(");");
-                        
-            StringBuilder columnsBuilder;
 
-            if (columnNames != null && columnNames.Count > 0)
-            {
-                columnsBuilder = new StringBuilder("(");
-                for (int i = 0; i < columnNames.Count; i++)
-                {
-                    columnsBuilder.Append(columnNames[i]);
-                    if (i != columnNames.Count - 1)
-                    {
-                        columnsBuilder.Append(", ");
-                    }
-                }
-                columnsBuilder.Append(");");
-            }
-            else
-            {
-                columnsBuilder = new StringBuilder(string.Empty);
-            }            
-
-            NpgsqlCommand command = new NpgsqlCommand($"insert into {tableName} {columnsBuilder.ToString()} values {valuesBuilder.ToString()}", _connection);
+            NpgsqlCommand command = new NpgsqlCommand($"insert into {tableName}{columns} values {values}", _connection);
             int rowsaffected;
             try
             {
@@ -147,28 +117,31 @@ namespace WpfPostgreSQL.Model
             return rowsaffected;
         }
 
-        private List<string> MainSelect(List<string> columnNames, string fromTable, string orderBy, bool isDesc) //, CryptEnum decrypt
+        private List<string> MainSelect(List<string> columnNames, 
+            string fromTable, 
+            string where,
+            string orderBy, 
+            bool isDesc,
+            CryptEnum decrypt)
         {
             _connection.Open();
 
-            StringBuilder columnsBuilder;
+            string columns;
 
             if (columnNames != null && columnNames.Count > 0)
             {
-                columnsBuilder = new StringBuilder("(");
-                for (int i = 0; i < columnNames.Count; i++)
+                if (decrypt == CryptEnum.NoCrypt)
                 {
-                    columnsBuilder.Append(columnNames[i]);
-                    if (i != columnNames.Count - 1)
-                    {
-                        columnsBuilder.Append(", ");
-                    }
+                    columns = ColumnBuilder(columnNames);
                 }
-                columnsBuilder.Append(");");
+                else
+                {
+                    columns = $"pgp_sym_decrypt({columnNames[0]}, \'stupidKey\')";
+                }
             }
             else
             {
-                columnsBuilder = new StringBuilder("*");
+                columns = "*";
             }
 
             string orderByAndDesc = string.Empty;
@@ -182,7 +155,7 @@ namespace WpfPostgreSQL.Model
                 }
             }            
 
-            NpgsqlCommand command = new NpgsqlCommand($"select {columnsBuilder.ToString()} from {fromTable} {orderByAndDesc}", _connection);
+            NpgsqlCommand command = new NpgsqlCommand($"select {columns} from {fromTable} {where} {orderByAndDesc}", _connection);
 
             List<string> result = new List<string>();
 
@@ -192,7 +165,15 @@ namespace WpfPostgreSQL.Model
             {
                 try
                 {
-                    result.Add(reader.GetString(0));
+                    var element = reader.GetValue(0);
+                    if (decrypt == CryptEnum.NoCrypt)
+                    {
+                        result.Add(Encoding.UTF8.GetString(element as byte[])); // исправить
+                    }
+                    else
+                    {
+                        result.Add(element as string);
+                    }
                 }
                 catch
                 {
@@ -202,6 +183,54 @@ namespace WpfPostgreSQL.Model
             _connection.Close();
 
             return result;
+        }
+
+        private string ValueBuilder(List<string> values, CryptEnum crypt)
+        {
+            StringBuilder valuesBuilder = new StringBuilder("(");
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (crypt != CryptEnum.NoCrypt)
+                {
+                    valuesBuilder.Append("pgp_sym_encrypt(");
+                }
+
+                valuesBuilder.Append("\'");
+                valuesBuilder.Append(values[i]);
+                valuesBuilder.Append("\'");
+
+                if (crypt != CryptEnum.NoCrypt)
+                {
+                    valuesBuilder.Append(", \'stupidKey\')");
+                    //pgp_pub_encrypt(data text, key bytea [, options text ])
+                }
+
+                if (i != values.Count - 1)
+                {
+                    valuesBuilder.Append(", ");
+                }
+            }
+            valuesBuilder.Append(")");
+
+            return valuesBuilder.ToString();
+        }
+
+        private string ColumnBuilder(List<string> columnNames)
+        {
+            StringBuilder columnsBuilder;
+
+            columnsBuilder = new StringBuilder(" (");
+            for (int i = 0; i < columnNames.Count; i++)
+            {
+                columnsBuilder.Append(columnNames[i]);
+                if (i != columnNames.Count - 1)
+                {
+                    columnsBuilder.Append(", ");
+                }
+            }
+            columnsBuilder.Append(")");
+
+            return columnsBuilder.ToString();
         }
     }
 }
