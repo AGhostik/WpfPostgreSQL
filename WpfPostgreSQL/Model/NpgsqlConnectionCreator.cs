@@ -14,7 +14,7 @@ namespace WpfPostgreSQL.Model
             NpgsqlConnectionStringBuilder connectionBuilder = new NpgsqlConnectionStringBuilder
             {
                 Host = _settings.Server,
-                Port = 5432, //_settings.Port
+                Port = _settings.Port,
                 Username = _settings.UserId,
                 Password = password,
                 Database = _settings.Database,

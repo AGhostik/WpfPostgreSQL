@@ -11,8 +11,8 @@
     d:DesignHeight="300"
     d:DesignWidth="300"
     ShowsNavigationUI="False"
-    WindowHeight="300"
-    WindowWidth="500"
+    WindowHeight="500"
+    WindowWidth="600"
     mc:Ignorable="d">
 
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">

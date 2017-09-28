@@ -15,7 +15,7 @@ namespace WpfPostgreSQL.UI
             _logInModel = new LogInModel();
 
             Server = "127.0.0.1";
-            Port = "5432";
+            Port = 5432;
             UserId = "postgres";
             DataBase = "TestDB";
         }
@@ -23,12 +23,12 @@ namespace WpfPostgreSQL.UI
         private readonly LogInModel _logInModel;
         
         private string _server;
-        private string _port;
+        private int _port;
         private string _dataBase;
         private string _userId;
 
         public string Server { get => _server; set => Set(ref _server, value); }
-        public string Port { get => _port; set => Set(ref _port, value); }
+        public int Port { get => _port; set => Set(ref _port, value); }
         public string DataBase { get => _dataBase; set => Set(ref _dataBase, value); }
         public string UserId { get => _userId; set => Set(ref _userId, value); }
 
@@ -36,11 +36,11 @@ namespace WpfPostgreSQL.UI
 
         public void LogIn(string password)
         {
-            if (string.IsNullOrEmpty(_server)
-                && string.IsNullOrEmpty(_port)
-                && string.IsNullOrEmpty(_dataBase)
-                && string.IsNullOrEmpty(_userId)
-                && string.IsNullOrEmpty(password))
+            if (_server == string.Empty              
+                || _dataBase == string.Empty
+                || _userId == string.Empty
+                || password == string.Empty
+                || _port <= 0)
             {
                 throw new AuthorizationException();
             }

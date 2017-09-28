@@ -18,13 +18,40 @@ namespace WpfPostgreSQL.Model
         int CreateTable(string name, List<string> columns);
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        int CreateDatabase(string name);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        int DropDatabase(string name);
+
+        /// <summary>
         /// DROP TABLE
         /// </summary>
         /// <param name="name"></param>
         /// <returns>Returns qurey result</returns>
         int DropTable(string name);
         
-        int Execute(string qurey);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        int ExecuteNonQuery(string command);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        List<TResult> ExecuteReader<TResult>(string command);
 
         /// <summary>
         /// INSERT INTO
@@ -34,26 +61,26 @@ namespace WpfPostgreSQL.Model
         /// <param name="columnNames">Set null or empty to skip this argument</param>
         /// <param name="crypt"></param>
         /// <returns></returns>
-        int Insert(string tableName,             
+        int Insert(CryptOptions cryptOptions,
+            string tableName,             
             List<string> values,
-            List<string> columnNames = null,
-            CryptEnum crypt = CryptEnum.NoCrypt);
+            List<string> columnNames = null);
 
         /// <summary>
         /// SELECT FROM
         /// </summary>
         /// <param name="fromTable"></param>
         /// <param name="columnNames">Set null or empty if need select from all columns</param>        
-        /// <param name="where">Set null or empty to skip this argument</param>
+        /// <param name="where">Set null or empty to skip this argument. Example: where id=32</param>
         /// <param name="orderBy">Set null or empty to skip this argument</param>
         /// <param name="isDesc"></param>
         /// <param name="decrypt"></param>
         /// <returns></returns>
-        List<string> Select(string fromTable,
+        List<TResult> Select<TResult>(CryptOptions cryptOptions,
+            string fromTable,
             List<string> columnNames = null,            
             string where = null,
             string orderBy = null,
-            bool isDesc = false,
-            CryptEnum decrypt = CryptEnum.NoCrypt);
+            bool isDesc = false);
     }
 }

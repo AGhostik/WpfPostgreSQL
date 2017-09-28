@@ -35,12 +35,49 @@
                     Click="SendButton_Click"
                     Content="Send message" />
             </StackPanel>
-            <ComboBox
-                Grid.Row="1"
-                Margin="5"
-                VerticalAlignment="Stretch"
-                ItemsSource="{Binding Path=CryptoList}"
-                SelectedItem="{Binding Path=SelectedCrypt, UpdateSourceTrigger=PropertyChanged}" />
+            <StackPanel Grid.Row="1" Orientation="Vertical">
+                <ComboBox
+                    Margin="5"
+                    VerticalAlignment="Stretch"
+                    ItemsSource="{Binding Path=CryptoList}"
+                    SelectedItem="{Binding Path=SelectedCrypt, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox
+                    Margin="5"
+                    Content="Is symmetry"
+                    IsChecked="{Binding Path=IsSymmetry, UpdateSourceTrigger=PropertyChanged}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Grid.Column="0"
+                        Margin="5"
+                        VerticalAlignment="Center"
+                        Text="SecretKey" />
+                    <TextBox
+                        Grid.Column="1"
+                        Margin="5"
+                        VerticalAlignment="Stretch"
+                        Text="{Binding Path=SecretKey, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
+                <Grid Visibility="{Binding Path=PublicKeyVisible, UpdateSourceTrigger=PropertyChanged}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Grid.Column="0"
+                        Margin="5"
+                        VerticalAlignment="Center"
+                        Text="PublicKey"/>
+                    <TextBox
+                        Grid.Column="1"
+                        Margin="5"
+                        VerticalAlignment="Stretch"
+                        Text="{Binding Path=PublicKey, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+            </StackPanel>
             <StackPanel
                 Grid.Row="2"
                 VerticalAlignment="Bottom"
@@ -60,7 +97,7 @@
             Grid.Column="1"
             Margin="5"
             ItemsSource="{Binding Path=TableRows}"
-            SelectedItem="{Binding Path=SelectedItem}" 
-            SelectedIndex="{Binding Path=SelectedIndex}"/>
+            SelectedIndex="{Binding Path=SelectedIndex}"
+            SelectedItem="{Binding Path=SelectedItem}" />
     </Grid>
 </Page>

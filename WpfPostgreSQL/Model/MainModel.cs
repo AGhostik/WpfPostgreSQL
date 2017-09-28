@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using System.Collections.Generic;
 
 namespace WpfPostgreSQL.Model
 {
@@ -12,23 +12,31 @@ namespace WpfPostgreSQL.Model
 
         private readonly IPostgreServer _postgreServer;
         
-        public void AddToServerTable(string value, CryptEnum crypt)
+        private readonly List<string> columns = new List<string>()
         {
-            _postgreServer.Insert("testTable", new List<string>() { value }, new List<string>() { "row_value" }, crypt);
+            "row_value"
+        };
+
+        public void TableAdd(string tableName, string value, CryptOptions cryptOptions)
+        {
+            _postgreServer.Insert(cryptOptions, tableName, new List<string>() { value }, columns);
         }
 
-        public string DecryptMessage(int tableItemIndex)
+        public string SelectAndDecrypt(string tableName, int tableItemIndex, CryptOptions cryptOptions)
         {
-            var list = _postgreServer.Select("testTable", new List<string>() { "row_value" }, null, null, false, CryptEnum.AES_128);
+            var list = _postgreServer.Select<string>(cryptOptions, tableName, columns, $"where row_id={tableItemIndex + 1}", null, false);
             return list[0];
         }
-
-        //select * from information_schema.tables where table_schema = 'public'
-
-        public List<string> GetServerTable()
+        
+        public List<string> GetServerTable(string tableName, CryptOptions cryptOptions)
         {
-            var list = _postgreServer.Select("testTable", new List<string>() { "row_value" }, null, null, false, CryptEnum.NoCrypt);
-            return list;
+            var byteList = _postgreServer.Select<byte[]>(cryptOptions, tableName, columns, null, null, false);
+            List<string> result = new List<string>();
+            foreach (var item in byteList)
+            {
+                result.Add(Convert.ToBase64String(item));
+            }
+            return result;
         }
     }
 }

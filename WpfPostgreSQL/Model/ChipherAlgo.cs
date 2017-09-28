@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WpfPostgreSQL.Model
 {
-    public enum CryptEnum
+    public enum ChipherAlgo
     {
         NoCrypt,
         Blowfish,
