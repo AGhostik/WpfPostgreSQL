@@ -30,6 +30,16 @@ namespace WpfPostgreSQL.UI
 
         private readonly MainViewModel _mainViewModel;
 
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            _mainViewModel.TableClear();
+        }
+
+        private void GenRandomButton_Click(object sender, RoutedEventArgs e)
+        {
+            _mainViewModel.GenerateRandomMessage();
+        }
+
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             _mainViewModel.Send();

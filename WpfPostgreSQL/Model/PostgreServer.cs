@@ -1,6 +1,7 @@
 ﻿using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,50 +18,7 @@ namespace WpfPostgreSQL.Model
         private readonly NpgsqlConnection _connection;
 
         #region publicMethods
-
-        public int CreateTable(string name, List<string> columns)
-        {
-            _connection.Open();
-
-            StringBuilder columnsBuilder = new StringBuilder($"create table {name} (");
-            foreach (var column in columns)
-            {
-                columnsBuilder.Append(column);
-                columnsBuilder.Append(", ");
-            }
-            columnsBuilder.Append(" );");
-
-            int qureyresult;
-
-            NpgsqlCommand command = new NpgsqlCommand(columnsBuilder.ToString(), _connection);
-            
-            try
-            {
-                qureyresult = command.ExecuteNonQuery();
-            }
-            finally
-            {
-                _connection.Close();
-            }
-
-            return qureyresult;
-        }
                 
-        public int DropTable(string name)
-        {
-            return ExecuteNonQuery($"drop table {name}");
-        }
-
-        public int CreateDatabase(string name)
-        {
-            return ExecuteNonQuery($"create database {name}");
-        }
-
-        public int DropDatabase(string name)
-        {
-            return ExecuteNonQuery($"drop database {name}");
-        }
-
         public int ExecuteNonQuery(string command)
         {
             _connection.Open();
@@ -149,7 +107,7 @@ namespace WpfPostgreSQL.Model
             string orderBy,
             bool isDesc)
         {
-            string columns = SelectColumnBuilder(columnNames, cryptOptions, null); // asymmKey нужно передавать !!!
+            string columns = SelectColumnBuilder(columnNames, cryptOptions);
 
             string orderByAndDesc = OrderByBuilder(orderBy, isDesc);
 
@@ -191,40 +149,47 @@ namespace WpfPostgreSQL.Model
             cryptFuncBegin = string.Empty;
             cryptFuncEnd = string.Empty;
 
-            if (cryptOptions.ChipherAlgo != ChipherAlgo.NoCrypt)
+            switch (cryptOptions.ChipherAlgo)
             {
-                if (cryptOptions.IsSymmetry)
-                {
-                    cryptFuncBegin = "pgp_sym_encrypt(";
-                    cryptFuncEnd = ", \'" + cryptOptions.SecretKey + "\', ";
-                }
-                else
-                {
-                    cryptFuncBegin = "pgp_pub_encrypt(";
-                    cryptFuncEnd = ", \'" + cryptOptions.PublicKey + "\', ";
-                }
+                case ChipherAlgo.NoCrypt:                    
+                    return;
+                case ChipherAlgo.Blowfish:
+                    cryptFuncBegin = "encrypt(";
+                    cryptFuncEnd = $", \'{cryptOptions.SecretKey}\', \'bf\')";
+                    return;
+                case ChipherAlgo.AES_128:
+                    cryptFuncBegin = "encrypt(";
+                    cryptFuncEnd = $", \'{cryptOptions.SecretKey}\', \'aes\')";
+                    return;
+                case ChipherAlgo.PGP_AES_128:
+                    cryptFuncEnd += "\'cipher-algo=aes128\')";
+                    break;
+                case ChipherAlgo.PGP_AES_192:
+                    cryptFuncEnd += "\'cipher-algo=aes192\')";
+                    break;
+                case ChipherAlgo.PGP_AES_256:
+                    cryptFuncEnd += "\'cipher-algo=aes256\')";
+                    break;
+                case ChipherAlgo.PGP_Blowfish:
+                    cryptFuncEnd += "\'cipher-algo=bf\')";
+                    break;
+                case ChipherAlgo.PGP_Cast5:
+                    cryptFuncEnd += "\'cipher-algo=cast5\')";
+                    break;
+                case ChipherAlgo.PGP_ThripleDes:
+                    cryptFuncEnd += "\'cipher-algo=3des\')";
+                    break;
+            }
 
-                switch (cryptOptions.ChipherAlgo)
-                {
-                    case ChipherAlgo.AES_128:
-                        cryptFuncEnd += "\'cipher-algo=aes128\')";
-                        break;
-                    case ChipherAlgo.AES_192:
-                        cryptFuncEnd += "\'cipher-algo=aes192\')";
-                        break;
-                    case ChipherAlgo.AES_256:
-                        cryptFuncEnd += "\'cipher-algo=aes256\')";
-                        break;
-                    case ChipherAlgo.Blowfish:
-                        cryptFuncEnd += "\'cipher-algo=bf\')";
-                        break;
-                    case ChipherAlgo.Cast5:
-                        cryptFuncEnd += "\'cipher-algo=cast5\')";
-                        break;
-                    case ChipherAlgo.ThripleDes:
-                        cryptFuncEnd += "\'cipher-algo=3des\')";
-                        break;
-                }
+            if (cryptOptions.IsPGPSymmetry)
+            {
+                cryptFuncBegin = "pgp_sym_encrypt(";
+                cryptFuncEnd = $", \'{cryptOptions.SecretKey}\', ";
+            }
+            else
+            {
+                cryptFuncBegin = "pgp_pub_encrypt(";
+                cryptFuncEnd = $", dearmor(\'{cryptOptions.PublicKey}\'), ";
             }
         }
 
@@ -252,14 +217,14 @@ namespace WpfPostgreSQL.Model
             return columnsBuilder.ToString();
         }
 
-        private string SelectColumnBuilder(List<string> columns, CryptOptions cryptOptions, string asymmKeyPass)
+        private string SelectColumnBuilder(List<string> columns, CryptOptions cryptOptions)
         {
             if (columns == null || columns.Count <= 0)
             {
                 return "*";
             }
 
-            DecryptFuncBuilder(cryptOptions, asymmKeyPass, out string decryptFuncBegin, out string decryptFuncEnd);
+            DecryptFuncBuilder(cryptOptions, out string decryptFuncBegin, out string decryptFuncEnd);
 
             StringBuilder columnsBuilder;
 
@@ -278,28 +243,42 @@ namespace WpfPostgreSQL.Model
             return columnsBuilder.ToString();
         }
 
-        private void DecryptFuncBuilder(CryptOptions cryptOptions, string asymmKeyPass, out string decryptFuncBegin, out string decryptFuncEnd)
+        private void DecryptFuncBuilder(CryptOptions cryptOptions, out string decryptFuncBegin, out string decryptFuncEnd)
         {
             decryptFuncBegin = string.Empty;
             decryptFuncEnd = string.Empty;
 
-            if (cryptOptions != null && cryptOptions.ChipherAlgo != ChipherAlgo.NoCrypt)
+            switch (cryptOptions.ChipherAlgo)
             {
-                if (cryptOptions.IsSymmetry)
-                {
-                    decryptFuncBegin = "pgp_sym_decrypt(";
-                    decryptFuncEnd = ", \'" + cryptOptions.SecretKey + "\')";
-                }
-                else
-                {
-                    decryptFuncBegin = "pgp_pub_decrypt(";
-                    string pass = string.Empty;
-                    if (!string.IsNullOrEmpty(asymmKeyPass))
+                case ChipherAlgo.NoCrypt:
+                    return;
+                case ChipherAlgo.AES_128:
+                    decryptFuncBegin = "decrypt(";
+                    decryptFuncEnd = $", \'{cryptOptions.SecretKey}\', \'aes\')";
+                    break;
+                case ChipherAlgo.Blowfish:
+                    decryptFuncBegin = "decrypt(";
+                    decryptFuncEnd = $", \'{cryptOptions.SecretKey}\', \'bf\')";
+                    break;
+                default:
                     {
-                        pass = "\'" + asymmKeyPass + "\', ";
+                        if (cryptOptions.IsPGPSymmetry)
+                        {
+                            decryptFuncBegin = "pgp_sym_decrypt_bytea(";
+                            decryptFuncEnd = ", \'" + cryptOptions.SecretKey + "\')";
+                        }
+                        else
+                        {
+                            decryptFuncBegin = "pgp_pub_decrypt_bytea(";
+                            string pass = string.Empty;
+                            if (!string.IsNullOrEmpty(cryptOptions.SecretKeyPassword))
+                            {
+                                pass = "\'" + cryptOptions.SecretKeyPassword + "\'";
+                            }
+                            decryptFuncEnd = ", dearmor(\'" + cryptOptions.SecretKey + "\'), " + pass + " )";
+                        }
                     }
-                    decryptFuncEnd = ", \'" + cryptOptions.SecretKey + "\' " + pass + " )";
-                }
+                    break;
             }
         }
 

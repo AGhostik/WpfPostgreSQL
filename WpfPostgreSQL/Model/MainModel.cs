@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace WpfPostgreSQL.Model
 {
@@ -17,24 +19,46 @@ namespace WpfPostgreSQL.Model
             "row_value"
         };
 
+        private Random random = new Random();
+        public string RandomString(int length)
+        {
+            if (length < 0)
+                return string.Empty;
+
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public void ReCreateTable(string tableName)
+        {
+            _postgreServer.ExecuteNonQuery($"drop table {tableName}");
+            _postgreServer.ExecuteNonQuery($"create table {tableName} ({columns[0]} bytea not null)");
+        }
+
         public void TableAdd(string tableName, string value, CryptOptions cryptOptions)
         {
             _postgreServer.Insert(cryptOptions, tableName, new List<string>() { value }, columns);
         }
 
-        public string SelectAndDecrypt(string tableName, int tableItemIndex, CryptOptions cryptOptions)
-        {
-            var list = _postgreServer.Select<string>(cryptOptions, tableName, columns, $"where row_id={tableItemIndex + 1}", null, false);
-            return list[0];
-        }
-        
-        public List<string> GetServerTable(string tableName, CryptOptions cryptOptions)
+        public List<string> GetDecryptedTable(string tableName, int tableItemIndex, CryptOptions cryptOptions)
         {
             var byteList = _postgreServer.Select<byte[]>(cryptOptions, tableName, columns, null, null, false);
             List<string> result = new List<string>();
             foreach (var item in byteList)
             {
-                result.Add(Convert.ToBase64String(item));
+                result.Add(Encoding.UTF8.GetString(item));
+            }
+            return result;
+        }
+        
+        public List<string> GetOriginalTable(string tableName, CryptOptions cryptOptions)
+        {
+            var byteList = _postgreServer.Select<byte[]>(cryptOptions, tableName, columns, null, null, false);
+            List<string> result = new List<string>();
+            foreach (var item in byteList)
+            {
+                result.Add(Encoding.UTF8.GetString(item));
             }
             return result;
         }

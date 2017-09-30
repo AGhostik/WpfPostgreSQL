@@ -11,9 +11,11 @@ namespace WpfPostgreSQL.Model
         NoCrypt,
         Blowfish,
         AES_128,
-        AES_192,
-        AES_256,
-        ThripleDes,
-        Cast5
+        PGP_Blowfish,
+        PGP_AES_128,
+        PGP_AES_192,
+        PGP_AES_256,
+        PGP_ThripleDes,
+        PGP_Cast5
     }
 }

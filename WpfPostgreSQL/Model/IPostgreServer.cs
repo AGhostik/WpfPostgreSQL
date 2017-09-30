@@ -8,36 +8,7 @@ using System.Threading.Tasks;
 namespace WpfPostgreSQL.Model
 {
     public interface IPostgreServer
-    {
-        /// <summary>
-        /// CREATE TABLE
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="columns">String example: username varchar(20) NOT NULL</param>
-        /// <returns>Returns qurey result</returns>
-        int CreateTable(string name, List<string> columns);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        int CreateDatabase(string name);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        int DropDatabase(string name);
-
-        /// <summary>
-        /// DROP TABLE
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns>Returns qurey result</returns>
-        int DropTable(string name);
-        
+    {  
         /// <summary>
         /// 
         /// </summary>
