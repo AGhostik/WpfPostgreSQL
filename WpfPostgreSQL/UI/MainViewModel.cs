@@ -4,6 +4,7 @@ using GalaSoft.MvvmLight;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Windows;
+using System.Threading.Tasks;
 
 namespace WpfPostgreSQL.UI
 {
@@ -12,19 +13,25 @@ namespace WpfPostgreSQL.UI
         public MainViewModel(IPostgreServer postgreServer)
         {
             _mainModel = new MainModel(postgreServer);
+            _mainModel.ExceptionEvent += (object sender, string content) => { ExceptionEvent(sender, content); };
+            
             IsSymmetry = true;
             SelectedCrypt = ChipherAlgo.AES_128;
             GenLength = 100;
-            UpdateTable();
+
+            UpdateTableOnStart();
         }
 
         private readonly MainModel _mainModel;
+
+        public event EventHandler<string> ExceptionEvent = (object sender, string message) => { };
+
         private readonly string _tableName = "testTable";
 
         private int _selectedIndex;
         private int _genLength;
         private string _sendMessage;      
-        private ChipherAlgo _selectedCrypt; //CryptEnum.NoCrypt;
+        private ChipherAlgo _selectedCrypt;
         private bool _isSymmetry;
         private string _secretKey;
         private string _publicKey;
@@ -96,17 +103,18 @@ namespace WpfPostgreSQL.UI
             SendMessage = _mainModel.RandomString(GenLength);
         }
 
-        public void TableClear()
+        public async Task TableClear()
         {
-            _mainModel.ReCreateTable(_tableName);
-            UpdateTable();
+            await _mainModel.ReCreateTable(_tableName);
+            await UpdateTable();
         }
 
-        public void Send()
+        public async Task Send()
         {
-            if (SendMessage == string.Empty)
+            if (string.IsNullOrEmpty(SendMessage))
             {
-                throw new Exception("Что оправлять на сервер, насяльника?");
+                ExceptionEvent(this, "Введите сообщение для отправки");
+                return;
             }
             
             CryptOptions cryptOptions = new CryptOptions()
@@ -118,14 +126,13 @@ namespace WpfPostgreSQL.UI
                 SecretKeyPassword = SecretKeyPass
             };
 
-            _mainModel.TableAdd(_tableName, SendMessage, cryptOptions);
+            await _mainModel.TableAdd(_tableName, SendMessage, cryptOptions);
 
-            UpdateTable();
+            await UpdateTable();
         }
 
-        public void Decrypt()
+        public async Task Decrypt()
         {
-            //UpdateTable();
             CryptOptions cryptOptions = new CryptOptions()
             {
                 ChipherAlgo = SelectedCrypt,
@@ -134,21 +141,26 @@ namespace WpfPostgreSQL.UI
                 PublicKey = PublicKey,
                 SecretKeyPassword = SecretKeyPass
             };
-            var list = _mainModel.GetDecryptedTable(_tableName, SelectedIndex, cryptOptions);
+            var list = await _mainModel.GetDecryptedTable(_tableName, SelectedIndex, cryptOptions);
             for (int i = 0; i < TableRows.Count; i++)
             {
                 TableRows[i].Decrypted = list[i];
             }
         }
 
-        private void UpdateTable()
+        private async void UpdateTableOnStart()
+        {
+            await UpdateTable(); // плохой костыль?
+        }
+
+        private async Task UpdateTable()
         {
             TableRows.Clear();
             CryptOptions cryptOptions = new CryptOptions()
             {
                 ChipherAlgo = ChipherAlgo.NoCrypt
             };
-            var list = _mainModel.GetOriginalTable(_tableName, cryptOptions);
+            var list = await _mainModel.GetOriginalTable(_tableName, cryptOptions);
             foreach (var item in list)
             {
                 TableRows.Add(new TableViewModel() { Original = item });

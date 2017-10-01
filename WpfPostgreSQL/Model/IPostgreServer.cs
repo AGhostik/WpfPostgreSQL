@@ -8,13 +8,18 @@ using System.Threading.Tasks;
 namespace WpfPostgreSQL.Model
 {
     public interface IPostgreServer
-    {  
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        event EventHandler<string> ExceptionEvent;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="command"></param>
         /// <returns></returns>
-        int ExecuteNonQuery(string command);
+        Task<int> ExecuteNonQuery(string command);
 
         /// <summary>
         /// 
@@ -22,7 +27,7 @@ namespace WpfPostgreSQL.Model
         /// <typeparam name="TResult"></typeparam>
         /// <param name="command"></param>
         /// <returns></returns>
-        List<TResult> ExecuteReader<TResult>(string command);
+        Task<List<TResult>> ExecuteReader<TResult>(string command);
 
         /// <summary>
         /// INSERT INTO
@@ -32,7 +37,7 @@ namespace WpfPostgreSQL.Model
         /// <param name="columnNames">Set null or empty to skip this argument</param>
         /// <param name="crypt"></param>
         /// <returns></returns>
-        int Insert(CryptOptions cryptOptions,
+        Task<int> Insert(CryptOptions cryptOptions,
             string tableName,             
             List<string> values,
             List<string> columnNames = null);
@@ -47,7 +52,7 @@ namespace WpfPostgreSQL.Model
         /// <param name="isDesc"></param>
         /// <param name="decrypt"></param>
         /// <returns></returns>
-        List<TResult> Select<TResult>(CryptOptions cryptOptions,
+        Task<List<TResult>> Select<TResult>(CryptOptions cryptOptions,
             string fromTable,
             List<string> columnNames = null,            
             string where = null,

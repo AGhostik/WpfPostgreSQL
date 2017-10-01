@@ -18,7 +18,7 @@ namespace WpfPostgreSQL.Model
                 Username = _settings.UserId,
                 Password = password,
                 Database = _settings.Database,
-                SslMode = SslMode.Disable
+                SslMode = SslMode.Prefer
             };
             var connection = new NpgsqlConnection(connectionBuilder.ConnectionString);
             return connection;

@@ -2,6 +2,7 @@
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace WpfPostgreSQL.Model
 {
@@ -10,10 +11,14 @@ namespace WpfPostgreSQL.Model
         public MainModel(IPostgreServer postgreServer)
         {
             _postgreServer = postgreServer;
+
+            _postgreServer.ExceptionEvent += (object sender, string content) => { ExceptionEvent(sender, content); };
         }
 
         private readonly IPostgreServer _postgreServer;
-        
+
+        public event EventHandler<string> ExceptionEvent = (object sender, string message) => { };
+
         private readonly List<string> columns = new List<string>()
         {
             "row_value"
@@ -30,20 +35,20 @@ namespace WpfPostgreSQL.Model
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        public void ReCreateTable(string tableName)
+        public async Task ReCreateTable(string tableName)
         {
-            _postgreServer.ExecuteNonQuery($"drop table {tableName}");
-            _postgreServer.ExecuteNonQuery($"create table {tableName} ({columns[0]} bytea not null)");
+            await _postgreServer.ExecuteNonQuery($"drop table {tableName}");
+            await _postgreServer.ExecuteNonQuery($"create table {tableName} ({columns[0]} bytea not null)");
         }
 
-        public void TableAdd(string tableName, string value, CryptOptions cryptOptions)
+        public async Task TableAdd(string tableName, string value, CryptOptions cryptOptions)
         {
-            _postgreServer.Insert(cryptOptions, tableName, new List<string>() { value }, columns);
+            await _postgreServer.Insert(cryptOptions, tableName, new List<string>() { value }, columns);
         }
 
-        public List<string> GetDecryptedTable(string tableName, int tableItemIndex, CryptOptions cryptOptions)
+        public async Task<List<string>> GetDecryptedTable(string tableName, int tableItemIndex, CryptOptions cryptOptions)
         {
-            var byteList = _postgreServer.Select<byte[]>(cryptOptions, tableName, columns, null, null, false);
+            var byteList = await _postgreServer.Select<byte[]>(cryptOptions, tableName, columns, null, null, false);
             List<string> result = new List<string>();
             foreach (var item in byteList)
             {
@@ -52,9 +57,9 @@ namespace WpfPostgreSQL.Model
             return result;
         }
         
-        public List<string> GetOriginalTable(string tableName, CryptOptions cryptOptions)
+        public async Task<List<string>> GetOriginalTable(string tableName, CryptOptions cryptOptions)
         {
-            var byteList = _postgreServer.Select<byte[]>(cryptOptions, tableName, columns, null, null, false);
+            var byteList = await _postgreServer.Select<byte[]>(cryptOptions, tableName, columns, null, null, false);
             List<string> result = new List<string>();
             foreach (var item in byteList)
             {

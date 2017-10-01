@@ -24,15 +24,18 @@ namespace WpfPostgreSQL.UI
         public MainPage(IPostgreServer postgreServer)
         {
             InitializeComponent();
+
             _mainViewModel = new MainViewModel(postgreServer);
+            _mainViewModel.ExceptionEvent += ShowMessage;
+
             DataContext = _mainViewModel;
         }
 
         private readonly MainViewModel _mainViewModel;
 
-        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        private async void ClearButton_Click(object sender, RoutedEventArgs e)
         {
-            _mainViewModel.TableClear();
+            await _mainViewModel.TableClear();
         }
 
         private void GenRandomButton_Click(object sender, RoutedEventArgs e)
@@ -40,14 +43,19 @@ namespace WpfPostgreSQL.UI
             _mainViewModel.GenerateRandomMessage();
         }
 
-        private void SendButton_Click(object sender, RoutedEventArgs e)
+        private async void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            _mainViewModel.Send();
+            await _mainViewModel.Send();
         }
 
-        private void DecryptButton_Click(object sender, RoutedEventArgs e)
+        private async void DecryptButton_Click(object sender, RoutedEventArgs e)
         {
-            _mainViewModel.Decrypt();
+           await _mainViewModel.Decrypt();
+        }
+
+        private void ShowMessage(object sender, string message)
+        {
+            MessageBox.Show(message);
         }
     }
 }

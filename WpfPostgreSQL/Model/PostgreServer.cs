@@ -1,8 +1,6 @@
 ﻿using Npgsql;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,19 +15,24 @@ namespace WpfPostgreSQL.Model
         
         private readonly NpgsqlConnection _connection;
 
+        public event EventHandler<string> ExceptionEvent = (object sender, string message) => { };
+
         #region publicMethods
-                
-        public int ExecuteNonQuery(string command)
+
+        public async Task<int> ExecuteNonQuery(string command)
         {
             _connection.Open();
 
-            NpgsqlCommand cmd = new NpgsqlCommand(command, _connection);
-
-            int qureyresult;
+            int qureyresult = 0;
 
             try
             {
-                qureyresult = cmd.ExecuteNonQuery();
+                NpgsqlCommand cmd = new NpgsqlCommand(command, _connection);                
+                qureyresult = await cmd.ExecuteNonQueryAsync();
+            }
+            catch (NpgsqlException e)
+            {
+                ExceptionEvent(this, e.Message);
             }
             finally
             {
@@ -39,54 +42,64 @@ namespace WpfPostgreSQL.Model
             return qureyresult;
         }
 
-        public List<TResult> ExecuteReader<TResult>(string command)
+        public async Task<List<TResult>> ExecuteReader<TResult>(string command)
         {
             List<TResult> result = new List<TResult>();
 
             _connection.Open();
 
-            NpgsqlCommand cmd = new NpgsqlCommand(command, _connection);
-
-            NpgsqlDataReader reader = cmd.ExecuteReader(); //wrong key exeption
-
-            while (reader.Read())
+            try
             {
-                var element = reader.GetValue(0);
-                if (element is TResult res)
+                NpgsqlCommand cmd = new NpgsqlCommand(command, _connection);
+
+                NpgsqlDataReader reader = cmd.ExecuteReader();
+
+                while (await reader.ReadAsync())
                 {
-                    result.Add(res);
-                }
-                else
-                {
-                    throw new Exception($"Cant cast {element.GetType()} to {typeof(TResult)}");
+                    var element = reader.GetValue(0);
+                    if (element is TResult res)
+                    {
+                        result.Add(res);
+                    }
+                    else
+                    {
+                        throw new Exception($"Cant cast {element.GetType()} to {typeof(TResult)}");
+                    }
                 }
             }
-            _connection.Close();
+            catch (NpgsqlException e)
+            {
+                ExceptionEvent(this, e.Message);
+            }
+            finally
+            {
+                _connection.Close();
+            }
 
             return result;
         }
 
-        public int Insert(CryptOptions cryptOptions,
+        public async Task<int> Insert(CryptOptions cryptOptions,
             string tableName,
             List<string> values,
             List<string> columnNames = null)
         {
-            return MainInsert(cryptOptions, tableName, columnNames, values);
+            return await MainInsert(cryptOptions, tableName, columnNames, values);
         }
         
-        public List<TResult> Select<TResult>(CryptOptions cryptOptions,
+        public async Task<List<TResult>> Select<TResult>(CryptOptions cryptOptions,
             string fromTable,
             List<string> columnNames = null,
             string where = null,
             string orderBy = null,
             bool isDesc = false)
         {
-            return MainSelect<TResult>(cryptOptions, columnNames, fromTable, where, orderBy, isDesc);
+            return await MainSelect<TResult>(cryptOptions, columnNames, fromTable, where, orderBy, isDesc);
         }
 
         #endregion
 
-        private int MainInsert(CryptOptions cryptOptions,
+        private async Task<int> MainInsert(CryptOptions cryptOptions,
             string tableName, 
             List<string> columnList, 
             List<string> valueList)
@@ -97,10 +110,10 @@ namespace WpfPostgreSQL.Model
             
             string command = $"insert into {tableName}{columns} values {values}";
             
-            return ExecuteNonQuery(command);
+            return await ExecuteNonQuery(command);
         }
         
-        private List<TResult> MainSelect<TResult>(CryptOptions cryptOptions,
+        private async Task<List<TResult>> MainSelect<TResult>(CryptOptions cryptOptions,
             List<string> columnNames,
             string fromTable,
             string where,
@@ -118,7 +131,7 @@ namespace WpfPostgreSQL.Model
 
             string command = $"select {columns} from {fromTable}{where}{orderByAndDesc}";
 
-            return ExecuteReader<TResult>(command);
+            return await ExecuteReader<TResult>(command);
         }
 
         private string ValueBuilder(List<string> values, CryptOptions cryptOptions)
